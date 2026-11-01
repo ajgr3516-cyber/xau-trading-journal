@@ -48,8 +48,6 @@
             font-size: 0.75rem;
             font-weight: bold;
         }
-        
-        /* Grid del Dashboard */
         .dashboard-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -83,8 +81,6 @@
             color: var(--text-muted);
             margin-top: 6px;
         }
-        
-        /* Gráfico Winrate Circular */
         .winrate-box {
             display: flex;
             flex-direction: column;
@@ -112,8 +108,6 @@
             align-items: center;
             justify-content: center;
         }
-        
-        /* Panel de Edición Manual */
         .edit-panel {
             background: var(--card-bg);
             border: 1px dashed var(--accent-gold);
@@ -165,15 +159,14 @@
 </head>
 <body>
     <div class="container">
-        <!-- Encabezado -->
+        <!-- Encabezado con fecha de Noviembre -->
         <div class="header">
             <span class="brand">IA XAULIQUIDITY</span>
-            <span class="date-badge">OCTUBRE 2026</span>
+            <span class="date-badge">NOVIEMBRE 2026</span>
         </div>
 
-        <!-- Dashboard Visual (Estilo de tu captura) -->
+        <!-- Dashboard Visual -->
         <div class="dashboard-grid">
-            <!-- Ganancia / Pérdida total -->
             <div class="card card-full" style="background: linear-gradient(135deg, rgba(34,197,94,0.1), rgba(19,27,40,1));">
                 <div class="card-title">RESULTADO DEL PERÍODO</div>
                 <div class="main-stat" id="disp-net" style="color: var(--green);">$ +2,500.00</div>
@@ -184,14 +177,12 @@
                 </div>
             </div>
 
-            <!-- Card de Take Profit -->
             <div class="card">
                 <div class="card-title" style="color: var(--green);">● TAKE PROFIT</div>
                 <div class="main-stat" id="disp-tp">14</div>
                 <div class="sub-stat" id="disp-tp-pct">64% del total</div>
             </div>
 
-            <!-- Win Rate Circle -->
             <div class="card winrate-box">
                 <div class="circle-chart" id="circle-chart">
                     <div class="circle-inner">
@@ -201,130 +192,24 @@
                 <div class="card-title" style="margin: 0;">WIN RATE</div>
             </div>
 
-            <!-- Card de Stop Loss -->
             <div class="card">
                 <div class="card-title" style="color: var(--red);">● STOP LOSS</div>
                 <div class="main-stat" id="disp-sl">6</div>
                 <div class="sub-stat" id="disp-sl-pct">27% del total</div>
             </div>
 
-            <!-- Otros cierres -->
             <div class="card">
                 <div class="card-title" style="color: var(--text-muted);">● OTROS CIERRES</div>
                 <div class="main-stat" id="disp-other">2</div>
                 <div class="sub-stat">BE / a mano / sin cierre</div>
             </div>
 
-            <!-- Operaciones Totales -->
             <div class="card">
                 <div class="card-title" style="color: var(--accent-gold);">● OPERACIONES</div>
                 <div class="main-stat" id="disp-total-ops">22</div>
                 <div class="sub-stat">Registradas</div>
             </div>
 
-            <!-- Promedio por Operación -->
             <div class="card">
                 <div class="card-title" style="color: var(--accent-gold);">● PROMEDIO</div>
-                <div class="main-stat" id="disp-avg" style="color: var(--green);">$ +114</div>
-                <div class="sub-stat">por operación</div>
-            </div>
-        </div>
-
-        <!-- Panel Manual de Edición -->
-        <div class="edit-panel">
-            <h3>⚙️ Panel de Entrada Manual</h3>
-            <div class="form-row">
-                <div class="form-group">
-                    <label>Operaciones TP (Ganadas)</label>
-                    <input type="number" id="in-tp" value="14" min="0">
-                </div>
-                <div class="form-group">
-                    <label>Monto Total Ganado ($)</label>
-                    <input type="number" id="in-won-monto" value="3100" step="any">
-                </div>
-            </div>
-            <div class="form-row">
-                <div class="form-group">
-                    <label>Operaciones SL (Perdidas)</label>
-                    <input type="number" id="in-sl" value="6" min="0">
-                </div>
-                <div class="form-group">
-                    <label>Monto Total Perdido (con signo -)</label>
-                    <input type="number" id="in-lost-monto" value="-600" step="any" placeholder="Ej: -600">
-                </div>
-            </div>
-            <div class="form-row">
-                <div class="form-group">
-                    <label>Otros Cierres (BE / Manual)</label>
-                    <input type="number" id="in-other" value="2" min="0">
-                </div>
-            </div>
-            <button class="btn-calc" onclick="calcularMetricas()">Actualizar Dashboard</button>
-        </div>
-    </div>
-
-    <script>
-        let tg = window.Telegram.WebApp;
-        if (tg) tg.expand();
-
-        function calcularMetricas() {
-            // Leer datos ingresados de los inputs (acepta signos negativos)
-            let tp = parseInt(document.getElementById('in-tp').value) || 0;
-            let sl = parseInt(document.getElementById('in-sl').value) || 0;
-            let other = parseInt(document.getElementById('in-other').value) || 0;
-            let ganado = parseFloat(document.getElementById('in-won-monto').value) || 0;
-            let perdido = parseFloat(document.getElementById('in-lost-monto').value) || 0; // Puede ser negativo
-
-            // Asegurar que 'perdido' sea restado correctamente
-            let perdidoAbs = Math.abs(perdido); 
-            let neto = ganado - perdidoAbs;
-            let totalOps = tp + sl + other;
-
-            // Cálculos de porcentajes
-            let winrate = totalOps > 0 ? Math.round((tp / totalOps) * 100) : 0;
-            let tpPct = totalOps > 0 ? Math.round((tp / totalOps) * 100) : 0;
-            let slPct = totalOps > 0 ? Math.round((sl / totalOps) * 100) : 0;
-            let promedio = totalOps > 0 ? Math.round(neto / totalOps) : 0;
-
-            // Actualizar vista del Dashboard
-            document.getElementById('disp-tp').innerText = tp;
-            document.getElementById('disp-sl').innerText = sl;
-            document.getElementById('disp-other').innerText = other;
-            document.getElementById('disp-total-ops').innerText = totalOps;
-            document.getElementById('disp-ops-count').innerText = totalOps + " operaciones";
-
-            document.getElementById('disp-tp-pct').innerText = tpPct + "% del total";
-            document.getElementById('disp-sl-pct').innerText = slPct + "% del total";
-
-            // Formatear montos en dólares
-            let netElem = document.getElementById('disp-net');
-            if (neto >= 0) {
-                netElem.innerText = "$ +" + neto.toLocaleString();
-                netElem.style.color = "var(--green)";
-            } else {
-                netElem.innerText = "$ " + neto.toLocaleString();
-                netElem.style.color = "var(--red)";
-            }
-
-            document.getElementById('disp-won-net').innerText = "ganados +$" + ganado.toLocaleString();
-            document.getElementById('disp-lost-net').innerText = "perdidos -$" + perdidoAbs.toLocaleString();
-
-            let avgElem = document.getElementById('disp-avg');
-            if (promedio >= 0) {
-                avgElem.innerText = "$ +" + promedio;
-                avgElem.style.color = "var(--green)";
-            } else {
-                avgElem.innerText = "$ " + promedio;
-                avgElem.style.color = "var(--red)";
-            }
-
-            // Winrate & Gráfico circular
-            document.getElementById('disp-winrate').innerText = winrate + "%";
-            document.getElementById('circle-chart').style.background = `conic-gradient(var(--green) 0% ${winrate}%, #1e293b ${winrate}% 100%)`;
-        }
-
-        // Ejecución inicial al cargar la página
-        calcularMetricas();
-    </script>
-</body>
-</html>
+                <div class="main
