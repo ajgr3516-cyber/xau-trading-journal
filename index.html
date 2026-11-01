@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bitácora & Métricas de Trading PRO</title>
+  <!-- Telegram WebApp SDK -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              bg: '#0a0a0f',
+              card: '#12131a',
+              input: '#1a1b26',
+              border: '#242636',
+              green: '#2ed573',
+              red: '#ff4757',
+              yellow: '#ffb703',
+              cyan: '#00d2ff'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+    body {
+      background-color: #0a0a0f;
+      color: #ffffff;
+      min-height: 100vh;
+    }
+    .glow-green {
+      box-shadow: 0 0 20px rgba(46, 213, 115, 0.15);
+    }
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0a0a0f;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #242636;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body class="p-3 sm:p-5 flex justify-center items-start">
+
+  <div class="w-full max-w-md space-y-4">
+
+    <!-- Header Principal -->
+    <header class="flex items-center justify-between py-2 border-b border-brand-border/60">
+      <div class="flex items-center gap-2">
+        <span class="text-xl">📊</span>
+        <div>
+          <h1 class="text-sm font-black tracking-wider text-brand-yellow uppercase">IA XAULIQUIDITY</h1>
+          <p class="text-[10px] text-slate-400">Control & Estadísticas de Trading</p>
+        </div>
+      </div>
+      <div class="bg-brand-card border border-brand-border px-2.5 py-1 rounded-full text-[11px] font-bold text-brand-yellow uppercase" id="currentPeriodBadge">
+        OCTUBRE 2026
+      </div>
+    </header>
+
+    <!-- Pips & Win Rate -->
+    <div class="grid grid-cols-5 gap-3">
+      <!-- Pips del Período -->
+      <div class="col-span-3 bg-brand-card border border-brand-border rounded-2xl p-4 flex flex-col justify-between glow-green">
+        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">PIPS DEL PERÍODO</span>
+        <div class="text-3xl font-black text-brand-green tracking-tight my-1" id="displayTotalPips">
+          +0
+        </div>
+        <div class="text-[10px] text-slate-400 flex items-center justify-between">
+          <span><strong text-white id="displayTotalOps">0</strong> ops</span>
+          <span>ganados <strong class="text-brand-green" id="displayPipsWon">+0</strong></span>
+          <span>perdidos <strong class="text-brand-red" id="displayPipsLost">-0</strong></span>
+        </div>
+      </div>
+
+      <!-- Win Rate Anillo -->
+      <div class="col-span-2 bg-brand-card border border-brand-border rounded-2xl p-3 flex flex-col items-center justify-center relative">
+        <div class="relative w-16 h-16 flex items-center justify-center">
+          <svg class="w-full h-full -rotate-90" viewBox="0 0 36 36">
+            <path class="text-brand-border" stroke-width="3.5" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+            <path id="winRateCircle" class="text-brand-green transition-all duration-500" stroke-dasharray="0, 100" stroke-width="3.5" stroke-linecap="round" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+          </svg>
+          <div class="absolute text-center">
+            <span class="text-xs font-black text-white block" id="displayWinRate">0%</span>
+          </div>
+        </div>
+        <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider mt-1">WIN RATE</span>
+      </div>
+    </div>
+
+    <!-- Desglose de Cierres (TP, SL, Otros) -->
+    <div class="grid grid-cols-3 gap-2">
+      <!-- TP -->
+      <div class="bg-brand-card border border-brand-border rounded-xl p-3">
+        <div class="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 uppercase">
+          <span class="w-2 h-2 rounded-full bg-brand-green"></span> TAKE PROFIT
+        </div>
+        <div class="text-xl font-extrabold text-brand-green mt-1" id="displayCountTP">0</div>
+        <div class="text-[10px] text-slate-500 font-medium" id="displayPercentTP">0% del total</div>
+      </div>
+
+      <!-- SL -->
+      <div class="bg-brand-card border border-brand-border rounded-xl p-3">
+        <div class="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 uppercase">
+          <span class="w-2 h-2 rounded-full bg-brand-red"></span> STOP LOSS
+        </div>
+        <div class="text-xl font-extrabold text-brand-red mt-1" id="displayCountSL">0</div>
+        <div class="text-[10px] text-slate-500 font-medium" id="displayPercentSL">0% del total</div>
+      </div>
+
+      <!-- OTROS / BE -->
+      <div class="bg-brand-card border border-brand-border rounded-xl p-3">
+        <div class="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 uppercase">
+          <span class="w-2 h-2 rounded-full bg-slate-400"></span> OTROS CIERRES
+        </div>
+        <div class="text-xl font-extrabold text-white mt-1" id="displayCountBE">0</div>
+        <div class="text-[9px] text-slate-500 leading-tight">BE / a mano</div>
+      </div>
+    </div>
+
+    <!-- Indicadores Estadísticos -->
+    <div class="grid grid-cols-3 gap-2">
+      <div class="bg-brand-card border border-brand-border rounded-xl p-3">
+        <div class="flex items-center gap-1 text-[10px] font-bold text-brand-yellow uppercase">
+          <i class="fa-solid fa-calculator text-[9px]"></i> OPERACIONES
+        </div>
+        <div class="text-lg font-extrabold text-white mt-1" id="displayTotalOpsCard">0</div>
+        <div class="text-[9px] text-slate-500">0 en curso</div>
+      </div>
+
+      <div class="bg-brand-card border border-brand-border rounded-xl p-3">
+        <div class="flex items-center gap-1 text-[10px] font-bold text-brand-yellow uppercase">
+          <i class="fa-solid fa-chart-line text-[9px]"></i> PROMEDIO
+        </div>
+        <div class="text-lg font-extrabold text-brand-green mt-1" id="displayAvgPips">+0</div>
+        <div class="text-[9px] text-slate-500">pips / operación</div>
+      </div>
+
+      <div class="bg-brand-card border border-brand-border rounded-xl p-3">
+        <div class="flex items-center gap-1 text-[10px] font-bold text-brand-green uppercase">
+          <i class="fa-solid fa-fire text-[9px]"></i> MEJOR RACHA
+        </div>
+        <div class="text-base font-extrabold text-brand-green mt-1" id="displayBestStreak">0 seguidas</div>
+        <div class="text-[8px] text-slate-500 leading-tight">ganadas consecutivas</div>
+      </div>
+    </div>
+
+    <!-- Módulo para Registrar Nuevo Trade -->
+    <div class="bg-brand-card border border-brand-border rounded-2xl p-4 space-y-3">
+      <div class="text-xs font-bold text-brand-yellow uppercase tracking-wider flex items-center gap-2">
+        <i class="fa-solid fa-plus-circle"></i> Registrar Nueva Entrada
+      </div>
+
+      <div class="grid grid-cols-2 gap-2">
+        <div>
+          <label class="block text-[10px] text-slate-400 mb-1">Resultado</label>
+          <select id="tradeType" class="w-full bg-brand-input border border-brand-border rounded-xl px-2.5 py-2 text-xs text-white font-bold outline-none">
+            <option value="TP">✅ Take Profit (Ganado)</option>
+            <option value="SL">❌ Stop Loss (Perdido)</option>
+            <option value="BE">⚪ Breakeven / Manual</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-[10px] text-slate-400 mb-1">Pips (+ o -)</label>
+          <input type="number" id="tradePips" placeholder="Ej: 150 o -50" class="w-full bg-brand-input border border-brand-border rounded-xl px-2.5 py-2 text-xs text-white font-bold outline-none">
+        </div>
+      </div>
+
+      <button type="button" onclick="addTrade()" class="w-full bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white font-black py-2.5 rounded-xl text-xs uppercase tracking-wider shadow-lg transition-all active:scale-95">
+        + Registrar Operación
+      </button>
+    </div>
+
+    <!-- Acciones Finales -->
+    <div class="flex gap-2 pt-2">
+      <button onclick="copySummaryText()" class="flex-1 bg-brand-card border border-brand-border hover:bg-slate-800 text-white py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 transition-all">
+        <i class="fa-regular fa-copy text-brand-yellow"></i> Copiar Reporte
+      </button>
+      <button onclick="resetJournal()" class="bg-brand-card border border-brand-border hover:border-brand-red text-slate-400 hover:text-brand-red px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all">
+        <i class="fa-solid fa-trash-can"></i>
+      </button>
+    </div>
+
+  </div>
+
+  <script>
+    if (window.Telegram && window.Telegram.WebApp) {
+      window.Telegram.WebApp.ready();
+      window.Telegram.WebApp.expand
