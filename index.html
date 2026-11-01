@@ -1,208 +1,260 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Bitácora & Métricas de Trading PRO</title>
-  <!-- Telegram WebApp SDK -->
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <!-- Tailwind CSS -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <!-- FontAwesome Icons -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
-  <script>
-    tailwind.config = {
-      darkMode: 'class',
-      theme: {
-        extend: {
-          colors: {
-            brand: {
-              bg: '#0a0a0f',
-              card: '#12131a',
-              input: '#1a1b26',
-              border: '#242636',
-              green: '#2ed573',
-              red: '#ff4757',
-              yellow: '#ffb703',
-              cyan: '#00d2ff'
-            }
-          }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XAU Liquidity - Bitácora Interactiva</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --accent: #d4af37;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --success: #22c55e;
+            --danger: #ef4444;
         }
-      }
-    }
-  </script>
-
-  <style>
-    * {
-      box-sizing: border-box;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    }
-    body {
-      background-color: #0a0a0f;
-      color: #ffffff;
-      min-height: 100vh;
-    }
-    .glow-green {
-      box-shadow: 0 0 20px rgba(46, 213, 115, 0.15);
-    }
-    ::-webkit-scrollbar {
-      width: 6px;
-    }
-    ::-webkit-scrollbar-track {
-      background: #0a0a0f;
-    }
-    ::-webkit-scrollbar-thumb {
-      background: #242636;
-      border-radius: 4px;
-    }
-  </style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 12px;
+        }
+        .container {
+            max-width: 480px;
+            margin: 0 auto;
+        }
+        h2 {
+            text-align: center;
+            color: var(--accent);
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+        }
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+        .metric-card {
+            background: var(--card-bg);
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid rgba(212, 175, 55, 0.2);
+        }
+        .metric-card span {
+            display: block;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+        .metric-card strong {
+            font-size: 1rem;
+            color: var(--accent);
+        }
+        .form-card {
+            background: var(--card-bg);
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .form-group {
+            margin-bottom: 10px;
+        }
+        label {
+            display: block;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-bottom: 3px;
+        }
+        input, select {
+            width: 100%;
+            padding: 8px;
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 6px;
+            color: white;
+            font-size: 0.9rem;
+            box-sizing: border-box;
+        }
+        .row {
+            display: flex;
+            gap: 8px;
+        }
+        .row .form-group {
+            flex: 1;
+        }
+        button.btn-submit {
+            width: 100%;
+            background: var(--accent);
+            color: #000;
+            border: none;
+            padding: 10px;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 0.95rem;
+            cursor: pointer;
+            margin-top: 5px;
+        }
+        .history-section h3 {
+            font-size: 1rem;
+            margin-bottom: 8px;
+            color: var(--text-muted);
+        }
+        .trade-item {
+            background: var(--card-bg);
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 4px solid var(--accent);
+            font-size: 0.85rem;
+        }
+        .trade-item.win { border-left-color: var(--success); }
+        .trade-item.loss { border-left-color: var(--danger); }
+        .trade-info b { display: block; font-size: 0.9rem; }
+        .trade-result { font-weight: bold; }
+        .trade-result.win { color: var(--success); }
+        .trade-result.loss { color: var(--danger); }
+    </style>
 </head>
-<body class="p-3 sm:p-5 flex justify-center items-start">
+<body>
+    <div class="container">
+        <h2>XAU LIQUIDITY - BITÁCORA</h2>
 
-  <div class="w-full max-w-md space-y-4">
+        <!-- Resumen de Métricas -->
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <span>Winrate</span>
+                <strong id="stat-winrate">0%</strong>
+            </div>
+            <div class="metric-card">
+                <span>Neto ($)</span>
+                <strong id="stat-net">$0.00</strong>
+            </div>
+            <div class="metric-card">
+                <span>Trades</span>
+                <strong id="stat-total">0</strong>
+            </div>
+        </div>
 
-    <!-- Header Principal -->
-    <header class="flex items-center justify-between py-2 border-b border-brand-border/60">
-      <div class="flex items-center gap-2">
-        <span class="text-xl">📊</span>
-        <div>
-          <h1 class="text-sm font-black tracking-wider text-brand-yellow uppercase">IA XAULIQUIDITY</h1>
-          <p class="text-[10px] text-slate-400">Control & Estadísticas de Trading</p>
+        <!-- Formulario para Registrar Operación -->
+        <div class="form-card">
+            <form id="trade-form">
+                <div class="row">
+                    <div class="form-group">
+                        <label>Activo</label>
+                        <select id="asset">
+                            <option value="XAUUSD">XAUUSD</option>
+                            <option value="US30">US30</option>
+                            <option value="Crypto">Crypto</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Resultado</label>
+                        <select id="result-type">
+                            <option value="WIN">🟢 WIN (+)</option>
+                            <option value="LOSS">🔴 LOSS (-)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="form-group">
+                        <label>Entrada</label>
+                        <input type="number" step="any" id="entry-price" placeholder="Ej: 2320.50" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Monto / PnL ($)</label>
+                        <input type="number" step="any" id="pnl-amount" placeholder="Ej: 150 o -50" required>
+                    </div>
+                </div>
+                <button type="submit" class="btn-submit">Registrar Operación</button>
+            </form>
         </div>
-      </div>
-      <div class="bg-brand-card border border-brand-border px-2.5 py-1 rounded-full text-[11px] font-bold text-brand-yellow uppercase" id="currentPeriodBadge">
-        OCTUBRE 2026
-      </div>
-    </header>
 
-    <!-- Pips & Win Rate -->
-    <div class="grid grid-cols-5 gap-3">
-      <!-- Pips del Período -->
-      <div class="col-span-3 bg-brand-card border border-brand-border rounded-2xl p-4 flex flex-col justify-between glow-green">
-        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">PIPS DEL PERÍODO</span>
-        <div class="text-3xl font-black text-brand-green tracking-tight my-1" id="displayTotalPips">
-          +0
+        <!-- Historial de Trades -->
+        <div class="history-section">
+            <h3>Historial de Sesión</h3>
+            <div id="trades-list">
+                <div style="text-align: center; color: var(--text-muted); font-size: 0.8rem; padding: 10px;">No hay operaciones registradas hoy.</div>
+            </div>
         </div>
-        <div class="text-[10px] text-slate-400 flex items-center justify-between">
-          <span><strong text-white id="displayTotalOps">0</strong> ops</span>
-          <span>ganados <strong class="text-brand-green" id="displayPipsWon">+0</strong></span>
-          <span>perdidos <strong class="text-brand-red" id="displayPipsLost">-0</strong></span>
-        </div>
-      </div>
-
-      <!-- Win Rate Anillo -->
-      <div class="col-span-2 bg-brand-card border border-brand-border rounded-2xl p-3 flex flex-col items-center justify-center relative">
-        <div class="relative w-16 h-16 flex items-center justify-center">
-          <svg class="w-full h-full -rotate-90" viewBox="0 0 36 36">
-            <path class="text-brand-border" stroke-width="3.5" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-            <path id="winRateCircle" class="text-brand-green transition-all duration-500" stroke-dasharray="0, 100" stroke-width="3.5" stroke-linecap="round" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-          </svg>
-          <div class="absolute text-center">
-            <span class="text-xs font-black text-white block" id="displayWinRate">0%</span>
-          </div>
-        </div>
-        <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider mt-1">WIN RATE</span>
-      </div>
     </div>
 
-    <!-- Desglose de Cierres (TP, SL, Otros) -->
-    <div class="grid grid-cols-3 gap-2">
-      <!-- TP -->
-      <div class="bg-brand-card border border-brand-border rounded-xl p-3">
-        <div class="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 uppercase">
-          <span class="w-2 h-2 rounded-full bg-brand-green"></span> TAKE PROFIT
-        </div>
-        <div class="text-xl font-extrabold text-brand-green mt-1" id="displayCountTP">0</div>
-        <div class="text-[10px] text-slate-500 font-medium" id="displayPercentTP">0% del total</div>
-      </div>
+    <script>
+        let tg = window.Telegram.WebApp;
+        tg.expand();
 
-      <!-- SL -->
-      <div class="bg-brand-card border border-brand-border rounded-xl p-3">
-        <div class="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 uppercase">
-          <span class="w-2 h-2 rounded-full bg-brand-red"></span> STOP LOSS
-        </div>
-        <div class="text-xl font-extrabold text-brand-red mt-1" id="displayCountSL">0</div>
-        <div class="text-[10px] text-slate-500 font-medium" id="displayPercentSL">0% del total</div>
-      </div>
+        let trades = [];
 
-      <!-- OTROS / BE -->
-      <div class="bg-brand-card border border-brand-border rounded-xl p-3">
-        <div class="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 uppercase">
-          <span class="w-2 h-2 rounded-full bg-slate-400"></span> OTROS CIERRES
-        </div>
-        <div class="text-xl font-extrabold text-white mt-1" id="displayCountBE">0</div>
-        <div class="text-[9px] text-slate-500 leading-tight">BE / a mano</div>
-      </div>
-    </div>
+        const form = document.getElementById('trade-form');
+        const tradesList = document.getElementById('trades-list');
+        const statWinrate = document.getElementById('stat-winrate');
+        const statNet = document.getElementById('stat-net');
+        const statTotal = document.getElementById('stat-total');
 
-    <!-- Indicadores Estadísticos -->
-    <div class="grid grid-cols-3 gap-2">
-      <div class="bg-brand-card border border-brand-border rounded-xl p-3">
-        <div class="flex items-center gap-1 text-[10px] font-bold text-brand-yellow uppercase">
-          <i class="fa-solid fa-calculator text-[9px]"></i> OPERACIONES
-        </div>
-        <div class="text-lg font-extrabold text-white mt-1" id="displayTotalOpsCard">0</div>
-        <div class="text-[9px] text-slate-500">0 en curso</div>
-      </div>
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
 
-      <div class="bg-brand-card border border-brand-border rounded-xl p-3">
-        <div class="flex items-center gap-1 text-[10px] font-bold text-brand-yellow uppercase">
-          <i class="fa-solid fa-chart-line text-[9px]"></i> PROMEDIO
-        </div>
-        <div class="text-lg font-extrabold text-brand-green mt-1" id="displayAvgPips">+0</div>
-        <div class="text-[9px] text-slate-500">pips / operación</div>
-      </div>
+            const asset = document.getElementById('asset').value;
+            const type = document.getElementById('result-type').value;
+            const entry = document.getElementById('entry-price').value;
+            const pnl = parseFloat(document.getElementById('pnl-amount').value);
 
-      <div class="bg-brand-card border border-brand-border rounded-xl p-3">
-        <div class="flex items-center gap-1 text-[10px] font-bold text-brand-green uppercase">
-          <i class="fa-solid fa-fire text-[9px]"></i> MEJOR RACHA
-        </div>
-        <div class="text-base font-extrabold text-brand-green mt-1" id="displayBestStreak">0 seguidas</div>
-        <div class="text-[8px] text-slate-500 leading-tight">ganadas consecutivas</div>
-      </div>
-    </div>
+            const trade = {
+                asset,
+                type,
+                entry,
+                pnl
+            };
 
-    <!-- Módulo para Registrar Nuevo Trade -->
-    <div class="bg-brand-card border border-brand-border rounded-2xl p-4 space-y-3">
-      <div class="text-xs font-bold text-brand-yellow uppercase tracking-wider flex items-center gap-2">
-        <i class="fa-solid fa-plus-circle"></i> Registrar Nueva Entrada
-      </div>
+            trades.unshift(trade);
+            updateUI();
+            form.reset();
+        });
 
-      <div class="grid grid-cols-2 gap-2">
-        <div>
-          <label class="block text-[10px] text-slate-400 mb-1">Resultado</label>
-          <select id="tradeType" class="w-full bg-brand-input border border-brand-border rounded-xl px-2.5 py-2 text-xs text-white font-bold outline-none">
-            <option value="TP">✅ Take Profit (Ganado)</option>
-            <option value="SL">❌ Stop Loss (Perdido)</option>
-            <option value="BE">⚪ Breakeven / Manual</option>
-          </select>
-        </div>
+        function updateUI() {
+            tradesList.innerHTML = '';
+            if (trades.length === 0) {
+                tradesList.innerHTML = '<div style="text-align: center; color: var(--text-muted); font-size: 0.8rem; padding: 10px;">No hay operaciones registradas hoy.</div>';
+                statWinrate.innerText = '0%';
+                statNet.innerText = '$0.00';
+                statTotal.innerText = '0';
+                return;
+            }
 
-        <div>
-          <label class="block text-[10px] text-slate-400 mb-1">Pips (+ o -)</label>
-          <input type="number" id="tradePips" placeholder="Ej: 150 o -50" class="w-full bg-brand-input border border-brand-border rounded-xl px-2.5 py-2 text-xs text-white font-bold outline-none">
-        </div>
-      </div>
+            let wins = 0;
+            let totalNet = 0;
 
-      <button type="button" onclick="addTrade()" class="w-full bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white font-black py-2.5 rounded-xl text-xs uppercase tracking-wider shadow-lg transition-all active:scale-95">
-        + Registrar Operación
-      </button>
-    </div>
+            trades.forEach(t => {
+                if (t.type === 'WIN') wins++;
+                totalNet += t.pnl;
 
-    <!-- Acciones Finales -->
-    <div class="flex gap-2 pt-2">
-      <button onclick="copySummaryText()" class="flex-1 bg-brand-card border border-brand-border hover:bg-slate-800 text-white py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 transition-all">
-        <i class="fa-regular fa-copy text-brand-yellow"></i> Copiar Reporte
-      </button>
-      <button onclick="resetJournal()" class="bg-brand-card border border-brand-border hover:border-brand-red text-slate-400 hover:text-brand-red px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all">
-        <i class="fa-solid fa-trash-can"></i>
-      </button>
-    </div>
+                const item = document.createElement('div');
+                item.className = `trade-item ${t.type.toLowerCase()}`;
+                item.innerHTML = `
+                    <div class="trade-info">
+                        <b>${t.asset} @ ${t.entry}</b>
+                        <span style="color: var(--text-muted);">Ref: ${t.type}</span>
+                    </div>
+                    <div class="trade-result ${t.type.toLowerCase()}">
+                        ${t.pnl >= 0 ? '+' : ''}$${t.pnl.toFixed(2)}
+                    </div>
+                `;
+                tradesList.appendChild(item);
+            });
 
-  </div>
-
-  <script>
-    if (window.Telegram && window.Telegram.WebApp) {
-      window.Telegram.WebApp.ready();
-      window.Telegram.WebApp.expand
+            const winrate = ((wins / trades.length) * 100).toFixed(0);
+            statWinrate.innerText = winrate + '%';
+            statNet.innerText = (totalNet >= 0 ? '+' : '') + '$' + totalNet.toFixed(2);
+            statNet.style.color = totalNet >= 0 ? 'var(--success)' : 'var(--danger)';
+            statTotal.innerText = trades.length;
+        }
+    </script>
+</body>
+</html>
